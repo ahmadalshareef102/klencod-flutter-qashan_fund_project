@@ -1,0 +1,22 @@
+name: qashan_fund
+description: صندوق وتكافل أبناء قعشان
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  path_provider: ^2.1.5
+  share_plus: ^10.1.4
+  file_picker: ^8.3.7
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/seed.json

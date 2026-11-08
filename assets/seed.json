@@ -1,0 +1,249 @@
+{
+  "members": [
+    {
+      "id": "m1",
+      "name": "صفوان قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m2",
+      "name": "شمسان قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m3",
+      "name": "ريان قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m4",
+      "name": "محمد قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m5",
+      "name": "نبيل قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m6",
+      "name": "صدام قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m7",
+      "name": "أمير قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m8",
+      "name": "محمد علوان قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m9",
+      "name": "سامر قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m10",
+      "name": "ذاكر قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m11",
+      "name": "شاكر قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m12",
+      "name": "فاكر قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m13",
+      "name": "شاطر قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m14",
+      "name": "ناظر قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m15",
+      "name": "فرقان قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m16",
+      "name": "عبده عبدالله عبده قعشان",
+      "fee": 3000
+    },
+    {
+      "id": "m17",
+      "name": "فايز احمد علوان قعشان",
+      "fee": 3000
+    }
+  ],
+  "months": [
+    "2026-06",
+    "2026-07",
+    "2026-08",
+    "2026-09",
+    "2026-10",
+    "2026-11",
+    "2026-12",
+    "2027-01",
+    "2027-02",
+    "2027-03"
+  ],
+  "activeMonth": "2026-11",
+  "payments": {
+    "2026-06": {
+      "m1": true,
+      "m2": true,
+      "m3": true,
+      "m4": true,
+      "m5": true,
+      "m6": true,
+      "m7": false,
+      "m8": true,
+      "m9": false,
+      "m10": true,
+      "m11": true,
+      "m12": true,
+      "m13": true,
+      "m14": true,
+      "m15": true,
+      "m16": true,
+      "m17": true
+    },
+    "2026-07": {
+      "m1": true,
+      "m2": false,
+      "m3": true,
+      "m4": false,
+      "m5": true,
+      "m6": true,
+      "m7": false,
+      "m8": true,
+      "m9": false,
+      "m10": false,
+      "m11": false,
+      "m12": false,
+      "m13": false,
+      "m14": false,
+      "m15": true,
+      "m16": true,
+      "m17": true
+    },
+    "2026-08": {
+      "m1": true,
+      "m2": false,
+      "m3": true,
+      "m4": false,
+      "m5": true,
+      "m6": true,
+      "m7": false,
+      "m8": true,
+      "m9": false,
+      "m10": false,
+      "m11": false,
+      "m12": false,
+      "m13": false,
+      "m14": false,
+      "m15": true,
+      "m16": true,
+      "m17": true
+    },
+    "2026-09": {
+      "m1": false,
+      "m2": false,
+      "m3": false,
+      "m4": false,
+      "m5": false,
+      "m6": true,
+      "m7": false,
+      "m8": true,
+      "m9": false,
+      "m10": false,
+      "m11": false,
+      "m12": false,
+      "m13": false,
+      "m14": false,
+      "m15": false,
+      "m16": false,
+      "m17": true
+    },
+    "2026-10": {
+      "m1": false,
+      "m2": false,
+      "m3": false,
+      "m4": false,
+      "m5": false,
+      "m6": true,
+      "m7": false,
+      "m8": false,
+      "m9": false,
+      "m10": false,
+      "m11": false,
+      "m12": false,
+      "m13": false,
+      "m14": false,
+      "m15": false,
+      "m16": false,
+      "m17": true
+    },
+    "2026-11": {
+      "m1": false,
+      "m2": false,
+      "m3": false,
+      "m4": false,
+      "m5": false,
+      "m6": true,
+      "m7": false,
+      "m8": false,
+      "m9": false,
+      "m10": false,
+      "m11": false,
+      "m12": false,
+      "m13": false,
+      "m14": false,
+      "m15": false,
+      "m16": false,
+      "m17": true
+    },
+    "2026-12": {
+      "m1": false,
+      "m2": false,
+      "m3": false,
+      "m4": false,
+      "m5": false,
+      "m6": true,
+      "m7": false,
+      "m8": false,
+      "m9": false,
+      "m10": false,
+      "m11": false,
+      "m12": false,
+      "m13": false,
+      "m14": false,
+      "m15": false,
+      "m16": false,
+      "m17": false
+    },
+    "2027-01": {},
+    "2027-02": {},
+    "2027-03": {}
+  },
+  "expenses": [
+    {
+      "id": "e1782518400000",
+      "date": "2026-06-27",
+      "reason": "كان محتاج بتعز منتضر للجواز",
+      "amount": 69000,
+      "beneficiary": "حام طاهر حسن قعشان"
+    }
+  ]
+}
