@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
+import 'reports.dart';
 
 const green = Color(0xFF1F4D3A), gold = Color(0xFFC9A227), cream = Color(0xFFF7F5EE), red = Color(0xFFA83C45);
 const arMonths = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
@@ -52,6 +53,17 @@ class Store extends ChangeNotifier {
   num get spent => expenses.fold<num>(0, (a, e) => a + (e['amount'] as num));
   num get balance => income - spent;
 
+  String get nowKey { final d = DateTime.now(); return '${d.year}-${d.month.toString().padLeft(2, '0')}'; }
+  bool isDue(String mk) => mk.compareTo(nowKey) <= 0;
+  num expected(String mk) => members.fold<num>(0, (a, m) => a + fee(m));
+  num memberPaid(Map m) => months.fold<num>(0, (a, mk) => a + (paid(mk, m['id']) ? fee(m) : 0));
+  List<String> unpaidDue(Map m) => [for (final mk in months.cast<String>()) if (isDue(mk) && !paid(mk, m['id'])) mk];
+  Future<void> editMember(String id, String name, num fee) async {
+    final m = members.firstWhere((x) => x['id'] == id);
+    m['name'] = name; m['fee'] = fee;
+    await save();
+  }
+
   Future<void> toggle(String mk, String id) async {
     (s['payments'] as Map).putIfAbsent(mk, () => <String, dynamic>{});
     s['payments'][mk][id] = !paid(mk, id);
@@ -88,7 +100,7 @@ final store = Store();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await store.init();
+  try { await store.init(); } catch (_) { await store.seed(); }
   runApp(const App());
 }
 
@@ -109,12 +121,12 @@ class _ShellState extends State<Shell> {
   int i = 0;
   @override
   Widget build(BuildContext context) {
-    final pages = [const Home(), const MembersPage(), const ExpensesPage(), const ReportPage(), const SettingsPage()];
+    final pages = <Widget>[Home(), MembersPage(), ExpensesPage(), ReportPage(), SettingsPage()];
     return ListenableBuilder(
       listenable: store,
       builder: (_, __) => Scaffold(
         appBar: AppBar(backgroundColor: green, foregroundColor: Colors.white, title: const Text('صندوق وتكافل أبناء قعشان', style: TextStyle(fontWeight: FontWeight.bold))),
-        body: pages[i],
+        body: ListenableBuilder(listenable: store, builder: (_, __) => pages[i]),
         bottomNavigationBar: NavigationBar(
           selectedIndex: i,
           onDestinationSelected: (v) => setState(() => i = v),
@@ -163,7 +175,10 @@ class Home extends StatelessWidget {
           onChanged: (v) => store.setActive(v!))),
         TextButton.icon(onPressed: store.addMonth, icon: const Icon(Icons.add), label: const Text('شهر جديد')),
       ]))),
-      Padding(padding: const EdgeInsets.all(6), child: Text('سدّد $paidCount من ${store.members.length} — المحصّل ${fmt(store.monthTotal(mk))} ر.ي', style: const TextStyle(fontWeight: FontWeight.bold))),
+      Row(children: [
+        Expanded(child: Padding(padding: const EdgeInsets.all(6), child: Text('سدّد $paidCount من ${store.members.length} — المحصّل ${fmt(store.monthTotal(mk))} ر.ي', style: const TextStyle(fontWeight: FontWeight.bold)))),
+        TextButton.icon(onPressed: () => openReport(context, monthlyReport(mk)), icon: const Icon(Icons.picture_as_pdf), label: const Text('تقرير الشهر')),
+      ]),
       for (final m in store.members)
         Card(color: Colors.white, child: CheckboxListTile(
           activeColor: green,
@@ -188,11 +203,24 @@ class MembersPage extends StatelessWidget {
           for (final (i, m) in store.members.indexed)
             Card(color: Colors.white, child: ListTile(
               leading: CircleAvatar(backgroundColor: green, foregroundColor: Colors.white, child: Text('${i + 1}')),
-              title: Text(m['name']), subtitle: Text('الاشتراك: ${fmt(store.fee(m))} ر.ي'),
+              title: Text(m['name']), subtitle: Text('الاشتراك: ${fmt(store.fee(m))} ر.ي${store.unpaidDue(m).isEmpty ? '' : '  •  متأخر ${store.unpaidDue(m).length} شهر'}'),
+              onTap: () => _edit(context, m),
               trailing: IconButton(icon: const Icon(Icons.delete_outline, color: red),
                 onPressed: () => confirmDo(context, 'حذف العضو "${m['name']}" وكل سجل سداده؟', () => store.delMember(m['id']))))),
         ]),
       );
+
+  void _edit(BuildContext c, Map m) {
+    final n = TextEditingController(text: '${m['name']}'), f = TextEditingController(text: '${m['fee']}');
+    showDialog(context: c, builder: (_) => Directionality(textDirection: TextDirection.rtl, child: AlertDialog(
+      title: const Text('تعديل عضو'),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: n, decoration: const InputDecoration(labelText: 'الاسم')),
+        TextField(controller: f, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'الاشتراك الشهري (ر.ي)')),
+      ]),
+      actions: [TextButton(onPressed: () => Navigator.pop(c), child: const Text('إلغاء')),
+        FilledButton(onPressed: () { if (n.text.trim().isEmpty) return; store.editMember(m['id'], n.text.trim(), num.tryParse(f.text) ?? 0); Navigator.pop(c); }, child: const Text('حفظ'))])));
+  }
 
   void _add(BuildContext c) {
     final n = TextEditingController(), f = TextEditingController(text: '3000');
@@ -250,30 +278,6 @@ class ExpensesPage extends StatelessWidget {
           store.addExpense(d.text.trim(), r.text.trim(), amt, w.text.trim());
           Navigator.pop(c);
         }, child: const Text('حفظ'))])));
-  }
-}
-
-class ReportPage extends StatelessWidget {
-  const ReportPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    final ms = store.months.cast<String>();
-    return ListView(padding: const EdgeInsets.all(12), children: [
-      Row(children: [statCard('إجمالي الإيرادات', store.income, green), statCard('المصروفات', store.spent, red), statCard('الرصيد', store.balance, gold)]),
-      const SizedBox(height: 8),
-      SingleChildScrollView(scrollDirection: Axis.horizontal, child: Card(color: Colors.white, child: DataTable(
-        columnSpacing: 18, headingRowHeight: 44, dataRowMinHeight: 38, dataRowMaxHeight: 38,
-        columns: [const DataColumn(label: Text('العضو')), for (final k in ms) DataColumn(label: Text(mLabel(k), style: const TextStyle(fontSize: 11)))],
-        rows: [
-          for (final m in store.members)
-            DataRow(cells: [DataCell(Text(m['name'])), for (final k in ms) DataCell(Text(store.paid(k, m['id']) ? '✅' : '❌'))]),
-          DataRow(color: WidgetStatePropertyAll(green.withOpacity(.08)), cells: [
-            const DataCell(Text('المحصّل', style: TextStyle(fontWeight: FontWeight.bold))),
-            for (final k in ms) DataCell(Text(fmt(store.monthTotal(k)), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-          ]),
-        ],
-      ))),
-    ]);
   }
 }
 
