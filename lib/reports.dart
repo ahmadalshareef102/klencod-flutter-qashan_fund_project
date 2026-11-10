@@ -84,6 +84,22 @@ Widget statusMark(bool paid, bool due) {
   return txt('–', color: Colors.black26);
 }
 
+Widget payCell(String mk, Map m) {
+  final p = store.paidAmt(mk, m['id']), f = store.fee(m);
+  if (p >= f) return const Icon(Icons.check_circle, color: green, size: 16);
+  if (p > 0) return txt(fmt(p), size: 10, bold: true, color: gold);
+  return store.isDue(mk) ? const Icon(Icons.cancel, color: red, size: 16) : txt('–', color: Colors.black26);
+}
+
+Widget statusRow(String mk, Map m) {
+  final p = store.paidAmt(mk, m['id']), f = store.fee(m), due = store.isDue(mk);
+  final full = p >= f, part = p > 0 && !full;
+  final label = full ? 'مسدّد' : part ? 'مسدّد جزئياً' : (due ? 'غير مسدّد' : 'غير مستحق');
+  final color = full ? green : part ? gold : (due ? red : Colors.black45);
+  final icon = full ? Icons.check_circle : part ? Icons.timelapse : (due ? Icons.cancel : Icons.remove_circle_outline);
+  return Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, color: color, size: 16), const SizedBox(width: 6), txt(label, color: color, bold: true)]);
+}
+
 Widget pageBody(List<Widget> kids) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: kids);
 
 // ───────────── التقارير ─────────────
@@ -112,7 +128,7 @@ Spec comprehensiveReport() {
           [
             txt('${off + i + 1}', color: Colors.black54),
             txt(ch[i]['name'], align: TextAlign.start),
-            for (final k in gm) statusMark(store.paid(k, ch[i]['id']), store.isDue(k)),
+            for (final k in gm) payCell(k, ch[i]),
             txt(fmt(store.memberPaid(ch[i])), bold: true),
           ]
       ];
@@ -150,13 +166,12 @@ Spec monthlyReport(String mk) {
     final rows = [
       for (var i = 0; i < ch.length; i++)
         (() {
-          final p = store.paid(mk, ch[i]['id']);
           return <Widget>[
             txt('${off + i + 1}', color: Colors.black54),
             txt(ch[i]['name'], align: TextAlign.start),
             txt(fmt(store.fee(ch[i]))),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [statusMark(p, due), const SizedBox(width: 6), txt(p ? 'مسدّد' : (due ? 'غير مسدّد' : 'غير مستحق'), color: p ? green : (due ? red : Colors.black45), bold: true)]),
-            txt(p ? fmt(store.fee(ch[i])) : '0'),
+            statusRow(mk, ch[i]),
+            txt(fmt(store.paidAmt(mk, ch[i]['id']))),
           ];
         })()
     ];
@@ -187,19 +202,18 @@ Spec memberReport(Map m) {
     final rows = [
       for (var i = 0; i < ch.length; i++)
         (() {
-          final p = store.paid(ch[i], m['id']), d = store.isDue(ch[i]);
           return <Widget>[
             txt('${off + i + 1}', color: Colors.black54),
             txt(mLabel(ch[i]), align: TextAlign.start),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [statusMark(p, d), const SizedBox(width: 6), txt(p ? 'مسدّد' : (d ? 'غير مسدّد' : 'غير مستحق'), color: p ? green : (d ? red : Colors.black45), bold: true)]),
-            txt(p ? fmt(fee) : '0'),
+            statusRow(ch[i], m),
+            txt(fmt(store.paidAmt(ch[i], m['id']))),
           ];
         })()
     ];
     final last = c == chunks.length - 1;
     bodies.add(pageBody([
       if (c == 0) ...[
-        summaryRow([Stat('الاشتراك الشهري', '${fmt(fee)} ر.ي', gold), Stat('إجمالي ما سدّده', '${fmt(store.memberPaid(m))} ر.ي', green), Stat('الأشهر المسدّدة', '$paidN من ${ms.length}', Colors.black87), Stat('المتأخرات المستحقة', '${fmt(owedN * fee)} ر.ي', owedN == 0 ? green : red)]),
+        summaryRow([Stat('الاشتراك الشهري', '${fmt(fee)} ر.ي', gold), Stat('إجمالي ما سدّده', '${fmt(store.memberPaid(m))} ر.ي', green), Stat('الأشهر المسدّدة', '$paidN من ${ms.length}', Colors.black87), Stat('المتأخرات المستحقة', '${fmt(store.owed(m))} ر.ي', owedN == 0 ? green : red)]),
         const SizedBox(height: 10),
       ],
       table(cols, rows, total: last ? [txt(''), txt('الإجمالي المسدّد', bold: true, color: green, align: TextAlign.start), txt('$paidN شهر', bold: true), txt(fmt(store.memberPaid(m)), bold: true, color: green)] : null),
@@ -237,7 +251,7 @@ Spec expensesReport() {
 
 Spec arrearsReport() {
   final mem = store.members.cast<Map>();
-  num owedOf(Map m) => store.unpaidDue(m).length * store.fee(m);
+  num owedOf(Map m) => store.owed(m);
   final rowsM = mem.where((m) => store.unpaidDue(m).isNotEmpty).toList()..sort((a, b) => owedOf(b).compareTo(owedOf(a)));
   final totalOwed = rowsM.fold<num>(0, (a, m) => a + owedOf(m));
   final dueN = store.months.cast<String>().where(store.isDue).length;
